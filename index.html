@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blockchain Certificate Authority</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+
+        header {
+            text-align: center;
+            padding: 20px 0;
+            background-color: #4CAF50;
+            color: white;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1000px;
+            margin: 0 auto;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+        }
+
+        .container form {
+            display: flex;
+            flex-direction: column;
+        }
+
+        h1, h2 {
+            text-align: center;
+            color: #333;
+        }
+
+        label {
+            display: block;
+            margin: 8px 0;
+            font-weight: bold;
+        }
+
+        input, select, button {
+            width: 100%;
+            padding: 10px;
+            margin: 8px 0;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        input:focus, select:focus, button:focus {
+            outline: 2px solid #4CAF50;
+        }
+
+        .result, .error {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 5px;
+            display: none;
+        }
+
+        .result {
+            background-color: #f9f9f9;
+            color: #333;
+        }
+
+        .error {
+            background-color: #ffe5e5;
+            color: red;
+        }
+
+        .form-column {
+            display: flex;
+            flex-direction: column;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>Blockchain Certificate Authority</h1>
+</header>
+
+<div class="container">
+
+    <div class="form-column">
+        <h2>Set Up Entity Addresses</h2>
+        <form id="setUpForm">
+            <label for="gsmaCI">GSMA CI Address:</label>
+            <input type="text" id="gsmaCI" name="gsmaCI" required><br>
+    
+            <label for="smDP">SM-DP+ Address:</label>
+            <input type="text" id="smDP" name="smDP" required><br>
+    
+            <label for="smDS">SM-DS Address:</label>
+            <input type="text" id="smDS" name="smDS" required><br>
+    
+            <label for="eum">EUM Address:</label>
+            <input type="text" id="eum" name="eum" required><br>
+    
+            <label for="eUICC">eUICC Address:</label>
+            <input type="text" id="eUICC" name="eUICC" required><br>
+    
+            <label for="lpa">LPA Address:</label>
+            <input type="text" id="lpa" name="lpa" required><br>
+    
+            <button type="submit">Save Addresses</button>
+        </form>
+    
+        <h2>Issue Certificate</h2>
+        <form id="issueForm">
+            <label for="certId">Certificate ID:</label>
+            <input type="text" id="certId" name="certId" required readonly><br>
+    
+            <label for="entity">Entity:</label>
+            <select id="entity" name="entity" required>
+                <option value="SM-DP+">SM-DP+</option>
+                <option value="SM-DS">SM-DS</option>
+                <option value="EUM">EUM</option>
+                <option value="eUICC">eUICC</option>
+                <option value="LPA">LPA</option>
+            </select><br>
+    
+            <label for="issuedTo">Issued To (Ethereum Address):</label>
+            <input type="text" id="issuedTo" name="issuedTo" required readonly><br>
+    
+            <button type="submit">Issue Certificate</button>
+        </form>
+    </div>
+
+    <div class="form-column">
+        <h2>Revoke Certificate</h2>
+        <form id="revokeForm">
+            <label for="revokeCertId">Certificate ID to Revoke:</label>
+            <input type="text" id="revokeCertId" name="revokeCertId" required>
+            <button type="submit">Revoke Certificate</button>
+        </form>
+
+        <h2>Verify Certificate</h2>
+        <form id="verifyForm">
+            <label for="verifyCertId">Certificate ID to Verify:</label>
+            <input type="text" id="verifyCertId" name="verifyCertId" required>
+            <button type="submit">Verify Certificate</button>
+        </form>
+    </div>
+
+    <div class="result" id="resultContainer">
+        <h3>Result:</h3>
+        <pre id="resultText"></pre>
+    </div>
+    <div class="error" id="errorContainer">
+        <p>Error: <span id="errorText"></span></p>
+    </div>
+</div>
+
+<script>
+    // Serialize BigInt for JSON.stringify
+    function serializeBigInt(key, value) {
+        return typeof value === "bigint" ? value.toString() : value;
+    }
+
+    // Handle "Set Up Entity Addresses" form submission
+    document.getElementById('setUpForm').addEventListener('submit', async function (event) {
+        event.preventDefault();
+        const gsmaCI = document.getElementById('gsmaCI').value;
+        const smDP = document.getElementById('smDP').value;
+        const smDS = document.getElementById('smDS').value;
+        const eum = document.getElementById('eum').value;
+        const eUICC = document.getElementById('eUICC').value;
+        const lpa = document.getElementById('lpa').value;
+
+        try {
+            const response = await fetch('/setUpEntityAddresses', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ gsmaCI, smDP, smDS, eum, eUICC, lpa }, serializeBigInt),
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                displayResult(`Addresses Saved:\n${JSON.stringify(data, null, 2)}`);
+            } else {
+                displayError(data.error);
+            }
+        } catch (error) {
+            displayError(error.message);
+        }
+    });
+
+    // Handle "Issue Certificate" form submission
+    document.getElementById('issueForm').addEventListener('submit', async function (event) {
+        event.preventDefault();
+
+        const certId = document.getElementById('certId');  // This will be generated on the server
+        const entity = document.getElementById('entity').value;
+        const issuedTo = document.getElementById('issuedTo').value;
+        try {
+            const response = await fetch('/issueCertificate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ issuedTo }),
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                displayResult(`Certificate Issued:\n${JSON.stringify(data, null, 2)}`);
+            } else {
+                displayError(data.error);
+            }
+        } catch (error) {
+            displayError(error.message);
+        }
+    });
+
+    // When the user selects an entity, update the "Issued To" field with the corresponding address
+    document.getElementById('entity').addEventListener('change', function () {
+        const entity = this.value;
+        const issuedToField = document.getElementById('issuedTo');
+
+        // Map the selected entity to its respective address from the form inputs
+        const entityAddresses = {
+            "SM-DP+": document.getElementById('smDP').value,
+            "SM-DS": document.getElementById('smDS').value,
+            "EUM": document.getElementById('eum').value,
+            "eUICC": document.getElementById('eUICC').value,
+            "LPA": document.getElementById('lpa').value,
+        };
+
+        // Update the "Issued To" field with the correct address
+        const address = entityAddresses[entity];
+        if (address) {
+            issuedToField.value = address;
+        }
+    });
+
+    // Trigger the 'change' event on page load to ensure "Issued To" field is populated
+    window.addEventListener('load', function () {
+        document.getElementById('entity').dispatchEvent(new Event('change'));
+    });
+
+    // Display result in the UI
+    function displayResult(message) {
+        document.getElementById('resultContainer').style.display = 'block';
+        document.getElementById('errorContainer').style.display = 'none';
+        document.getElementById('resultText').textContent = message;
+    }
+
+    // Display error message in the UI
+    function displayError(message) {
+        document.getElementById('errorContainer').style.display = 'block';
+        document.getElementById('resultContainer').style.display = 'none';
+        document.getElementById('errorText').textContent = message;
+    }
+</script>
+</body>
+</html>

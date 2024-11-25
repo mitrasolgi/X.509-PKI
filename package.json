@@ -1,0 +1,27 @@
+{
+  "dependencies": {
+    "@truffle/hdwallet-provider": "^2.1.15",
+    "body-parser": "^1.20.3",
+    "express": "^4.21.1",
+    "node-forge": "^1.3.1",
+    "web3": "^4.14.0"
+  },
+  "name": "eth-certificate-issuer",
+  "version": "1.0.0",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mitrasolgi/pki-blockchain.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/mitrasolgi/pki-blockchain/issues"
+  },
+  "homepage": "https://github.com/mitrasolgi/pki-blockchain#readme",
+  "description": ""
+}
