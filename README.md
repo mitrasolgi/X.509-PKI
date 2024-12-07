@@ -55,6 +55,25 @@ This project implements a **Blockchain-based Certificate Authority (CA)** system
    - **LPA**
 2. **GSMA CI Issues Certificates**: A function is included to simulate the certificate issuance from the Root CA (GSMA CI) to intermediate CAs.
 3. **Intermediate CAs Issue Certificates**: Intermediate CAs (e.g., EUM) can issue certificates to their child entities, represented in a code snippet.
+## API Endpoints
+
+### 1. Configure Entity Addresses
+- **Endpoint**: `POST /setUpEntityAddresses`
+- **Purpose**: Set Ethereum addresses for entities in the system.
+  
+  This endpoint configures the Ethereum addresses of the various entities, such as GSMA CI (Root CA), SM-DP+, SM-DS, EUM, eUICC, and LPA.
+
+### 2.  Issue Certificate
+- **Endpoint**: `POST /issueCertificate`
+- **Purpose**: Issue a certificate to a specified entity.
+  
+### 3. Verify Certificate
+- **Endpoint**: `POST /verifyCertificate`
+- **Purpose**: Verify the validity of a certificate.
+  
+### 4. Revoke Certificate
+- **Endpoint**: `POST /revokeCertificate`
+- **Purpose**: Revoke a certificate issued to an entity.
 
 
 
