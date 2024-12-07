@@ -40,5 +40,22 @@ This project implements a **Blockchain-based Certificate Authority (CA)** system
 5. **Start the Backend Server: Run the following command to start the backend server:**:
    ```bash
     node server.js
+## Usage
+
+### Setup
+
+1. **Configure Ethereum addresses for entities**:
+   Set Ethereum addresses for the following entities. These addresses will be used for interactions and signing certificates:
+
+   - **GSMA CI** (Root CA)
+   - **SM-DP+**
+   - **SM-DS**
+   - **EUM**
+   - **eUICC**
+   - **LPA**
+2. **GSMA CI Issues Certificates**: A function is included to simulate the certificate issuance from the Root CA (GSMA CI) to intermediate CAs.
+3. **Intermediate CAs Issue Certificates**: Intermediate CAs (e.g., EUM) can issue certificates to their child entities, represented in a code snippet.
+
+
 
 
