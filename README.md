@@ -34,7 +34,7 @@ This project implements a **Blockchain-based Certificate Authority (CA)** system
    ```bash
     ganache-cli --port 8545
 4. **Deploy Smart Contract:**:
-  - Open Remix IDE (https://remix.ethereum.org
+  - Open Remix IDE (https://remix.ethereum.org)
   - Connect to Ganache using the HTTP Provider. The provider URL is http://localhost:8545.
   - Deploy the CertificateAuthority.sol contract to the Ganache blockchain.
 5. **Start the Backend Server: Run the following command to start the backend server:**:
