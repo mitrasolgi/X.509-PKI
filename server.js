@@ -25,6 +25,66 @@ app.use(express.static('public'));
 let entityAddresses = {};
 let certificates = {};
 
+// Generate X.509 certificate
+function generateX509Certificate(userAddress, blockchainName, caPublicKey) {
+    const keys = forge.pki.rsa.generateKeyPair(2048);
+    const cert = forge.pki.createCertificate();
+    cert.publicKey = keys.publicKey;
+    cert.serialNumber = String(Date.now());
+    cert.validFrom = new Date();
+    cert.validTo = new Date();
+    cert.validTo.setFullYear(cert.validTo.getFullYear() + 1);
+
+    // Set Subject and Issuer
+    cert.setSubject([{ name: 'commonName', value: userAddress }]);
+    cert.setIssuer([{ name: 'commonName', value: 'Root CA' }]);
+
+    // Add Subject Key Identifier (Derived from public key)
+    const subjectKeyIdentifier = forge.md.sha256
+        .create()
+        .update(forge.asn1.toDer(forge.pki.publicKeyToAsn1(keys.publicKey)).getBytes())
+        .digest()
+        .toHex();
+    cert.setExtensions([
+        {
+            name: 'subjectKeyIdentifier',
+            keyIdentifier: subjectKeyIdentifier,
+        },
+        {
+            name: 'authorityKeyIdentifier',
+            keyIdentifier: forge.md.sha256
+                .create()
+                .update(forge.asn1.toDer(forge.pki.publicKeyToAsn1(caPublicKey)).getBytes())
+                .digest()
+                .toHex(),
+        },
+        {
+            name: 'blockchainName',
+            value: blockchainName,
+        },
+        {
+            name: 'basicConstraints',
+            cA: false,
+        },
+        {
+            name: 'keyUsage',
+            digitalSignature: true,
+            keyEncipherment: true,
+        },
+        {
+            name: 'extendedKeyUsage',
+            serverAuth: true,
+            clientAuth: true,
+        },
+    ]);
+
+    // Sign certificate using SHA-256
+    cert.sign(keys.privateKey, forge.md.sha256.create());
+
+    const pem = forge.pki.certificateToPem(cert);
+    return { pem, keys };
+}
+
 // Endpoint: Set up entity addresses
 app.post('/setUpEntityAddresses', (req, res) => {
     const { gsmaCI, smDP, smDS, eum, eUICC, lpa } = req.body;
@@ -42,6 +102,8 @@ app.post('/issueCertificate', async (req, res) => {
     console.log('Request body:', req.body);
 
     const { issuedTo } = req.body;
+    const { pem } = generateX509Certificate(issuedTo);
+
 
     // Ensure that 'issuedTo' is a valid Ethereum address
     if (!web3.utils.isAddress(issuedTo)) {
@@ -50,8 +112,10 @@ app.post('/issueCertificate', async (req, res) => {
 
     // Generate the certificate ID and certificate hash
     const certId = 'CERT-' + Date.now();
+    const certHash = web3.utils.sha3(pem);
+
     const certIdBytes32 = web3.utils.keccak256(certId);
-    const certHash = web3.utils.sha3(certId);
+    // const certHash = web3.utils.sha3(certId);
 
     // Assuming the parentCertId is provided as the Root CA's certificate ID for testing purposes
     const parentCertId = web3.utils.keccak256("ROOT_CA_CERTIFICATE"); // Replace with a valid parent certificate ID
